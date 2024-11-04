@@ -38,6 +38,39 @@ exports.getTask = async (req, res, next) => {
   }
 };
 
+exports.getTasks = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 10, priority, title, sortBy = "createdAt", order = "asc" } = req.query;
+
+    // filter object for querying tasks
+    const filter = {};
+    if (priority) filter.priority = priority; // Filter by priority
+    if (title) filter.title = { $regex: title, $options: "i" }; // Case-insensitive search for title
+
+    // Fetching tasks from the database with filtering, sorting, and pagination
+    const tasks = await Task.find(filter)
+      .sort({ [sortBy]: order === "asc" ? 1 : -1 }) // Sort tasks based on sortBy and order
+      .skip((page - 1) * limit) // Skip tasks for previous pages
+      .limit(parseInt(limit)); // Limit the number of tasks per page
+
+    // Counting total tasks that match the filter for pagination metadata
+    const totalTasks = await Task.countDocuments(filter);
+    const totalPages = Math.ceil(totalTasks / limit); // Calculating total pages
+
+    res.json({
+      tasks,
+      meta: {
+        totalTasks,
+        totalPages,
+        currentPage: parseInt(page),
+        tasksPerPage: parseInt(limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.updateTask = async (req, res, next) => {
   try {
     const { id } = req.params;
