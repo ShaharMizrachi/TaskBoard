@@ -25,6 +25,9 @@ const TaskDetailPage: React.FC = () => {
             try {
                 const response = await axios.get(`/tasks/${id}`);
                 const taskData = response.data;
+                console.log('====================================');
+                console.log(taskData);
+                console.log('====================================');
                 setTask(taskData);
                 setTitle(taskData.title);
                 setDescription(taskData.description);
