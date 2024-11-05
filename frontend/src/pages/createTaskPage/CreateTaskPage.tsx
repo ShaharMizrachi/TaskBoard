@@ -8,6 +8,7 @@ const CreateTaskPage: React.FC = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+    const [createdTaskId, setCreatedTaskId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
@@ -16,7 +17,8 @@ const CreateTaskPage: React.FC = () => {
         setError(null);
 
         try {
-            await axios.post('/tasks', { title, description });
+            const response = await axios.post('/tasks', { title, description });
+            setCreatedTaskId(response.data.id); // Assuming the backend returns the new task's ID
             setSuccessDialogOpen(true);
         } catch (err) {
             setError('Failed to create task. Please try again.');
@@ -25,7 +27,9 @@ const CreateTaskPage: React.FC = () => {
 
     const handleDialogClose = () => {
         setSuccessDialogOpen(false);
-        navigate('/');
+        if (createdTaskId) {
+            navigate(`/tasks/${createdTaskId}`); // Redirect to the task detail view
+        }
     };
 
     return (
@@ -73,11 +77,11 @@ const CreateTaskPage: React.FC = () => {
             {/* Success Dialog */}
             <Dialog open={successDialogOpen} onClose={handleDialogClose}>
                 <DialogContent>
-                    <Typography>Task created successfully!</Typography>
+                    <Typography>Task created successfully! ID: {createdTaskId}</Typography>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleDialogClose} color="primary" autoFocus>
-                        OK
+                        Go to Task
                     </Button>
                 </DialogActions>
             </Dialog>
